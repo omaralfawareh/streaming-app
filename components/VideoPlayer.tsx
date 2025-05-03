@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { ThemeContext } from "@/providers/ThemeProvider";
 import { useContext, useEffect, useRef } from "react";
@@ -49,7 +51,7 @@ const playerOptions = {
   ],
 };
 
-export function VideoPlayer({ data }) {
+export function VideoPlayer() {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const { theme, setTheme } = useContext(ThemeContext);
