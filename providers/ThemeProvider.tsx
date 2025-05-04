@@ -5,6 +5,7 @@ import {
   SetStateAction,
   useState,
   PropsWithChildren,
+  useContext,
 } from "react";
 
 type ThemeContextType = {
@@ -26,3 +27,5 @@ export default function ThemeProvider({ children }: PropsWithChildren) {
     </ThemeContext.Provider>
   );
 }
+
+export const useTheme = () => useContext(ThemeContext);
