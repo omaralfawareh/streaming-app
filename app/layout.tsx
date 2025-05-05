@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ThemeProvider from "@/providers/ThemeProvider";
-import {
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
+import ThemeProvider, { type Theme } from "@/providers/ThemeProvider";
+import { UserButton } from "@clerk/nextjs";
+import { cookies } from "next/headers";
 import ThemeButton from "@/components/ThemeButton";
 import CustomClerkProvider from "@/components/CustomClerkProvider";
+import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { Button } from "@/components/ui/button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,32 +25,37 @@ export const metadata: Metadata = {
   description: "", // TODO: Add proper metadata
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = await auth();
+  const userTheme = (await cookies()).get("theme")?.value as Theme;
+
   return (
-    <ThemeProvider>
+    <ThemeProvider userTheme={userTheme}>
       <CustomClerkProvider>
-        <html lang="en">
+        <html lang="en" className={`${userTheme || "dark"}`}>
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           >
-            <header className="flex justify-end items-center p-4 gap-6 h-16">
-              <ThemeButton />
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="cursor-pointer">SignIn</button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="cursor-pointer">SignUp</button>
-                </SignUpButton>
-              </SignedOut>
-
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
+            <header className="flex justify-between items-center p-4 gap-6 h-16 absolute border-b w-full z-10">
+              <div className="flex gap-4">
+                <Link href="/">Logo</Link>
+              </div>
+              <div className="flex gap-4">
+                <ThemeButton />
+                {!userId ? (
+                  <div className="flex flex-row gap-2">
+                    <Link href="/signin">
+                      <Button className="cursor-pointer">SignIn</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <UserButton showName signInUrl="/signin" />
+                )}
+              </div>
             </header>
             {children}
           </body>

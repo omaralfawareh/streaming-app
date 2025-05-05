@@ -1,5 +1,5 @@
 "use client";
-
+import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { useTheme } from "@/providers/ThemeProvider";
 
 const ThemeButton = () => {
@@ -12,7 +12,7 @@ const ThemeButton = () => {
         setTheme(theme === "dark" ? "light" : "dark");
       }}
     >
-      {theme === "dark" ? "dark" : "light"}
+      {theme === "dark" ? <SunOutlined /> : <MoonOutlined />}
     </button>
   );
 };
