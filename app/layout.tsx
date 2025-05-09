@@ -9,6 +9,7 @@ import CustomClerkProvider from "@/components/CustomClerkProvider";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,7 +54,16 @@ export default async function RootLayout({
                     </Link>
                   </div>
                 ) : (
-                  <UserButton showName signInUrl="/signin" />
+                  <UserButton
+                    showName
+                    signInUrl="/signin"
+                    fallback={
+                      <div className="flex flex-row gap-2 justify-center items-center">
+                        <Skeleton className="w-[103.7px] h-[18px] rounded-full" />
+                        <Skeleton className="h-[28px] w-[28px] rounded-full" />
+                      </div>
+                    }
+                  />
                 )}
               </div>
             </header>
