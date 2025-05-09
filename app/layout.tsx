@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ThemeProvider from "@/providers/ThemeProvider";
+import ThemeProvider, { type Theme } from "@/providers/ThemeProvider";
+import { UserButton } from "@clerk/nextjs";
+import { cookies } from "next/headers";
+import ThemeButton from "@/components/ThemeButton";
+import CustomClerkProvider from "@/components/CustomClerkProvider";
+import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,14 +31,46 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = await auth();
+  const userTheme = (await cookies()).get("theme")?.value as Theme;
+
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <h1>Omar Alfawareh</h1>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
-    </html>
+    <ThemeProvider userTheme={userTheme}>
+      <CustomClerkProvider>
+        <html lang="en" className={`${userTheme || "dark"}`}>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            <header className="flex justify-between items-center p-4 gap-6 h-16 absolute border-b w-full z-10">
+              <div className="flex gap-4">
+                <Link href="/">Logo</Link>
+              </div>
+              <div className="flex gap-4">
+                <ThemeButton />
+                {!userId ? (
+                  <div className="flex flex-row gap-2">
+                    <Link href="/signin">
+                      <Button className="cursor-pointer">SignIn</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <UserButton
+                    showName
+                    signInUrl="/signin"
+                    fallback={
+                      <div className="flex flex-row gap-2 justify-center items-center">
+                        <Skeleton className="w-[103.7px] h-[18px] rounded-full" />
+                        <Skeleton className="h-[28px] w-[28px] rounded-full" />
+                      </div>
+                    }
+                  />
+                )}
+              </div>
+            </header>
+            {children}
+          </body>
+        </html>
+      </CustomClerkProvider>
+    </ThemeProvider>
   );
 }
