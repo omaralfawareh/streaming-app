@@ -1,11 +1,8 @@
+"use client";
 import { VideoPlayer } from "@/components/VideoPlayer";
 
-async function Home() {
-  return (
-    <>
-      <VideoPlayer />
-    </>
-  );
+function Home() {
+  return <VideoPlayer />;
 }
 
 export default function HomeSuspense() {
