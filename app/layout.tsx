@@ -44,6 +44,7 @@ export default async function RootLayout({
             <header className="flex justify-between items-center p-4 gap-6 h-16 absolute border-b w-full z-10">
               <div className="flex gap-4">
                 <Link href="/">Logo</Link>
+                {userId && <Link href="/stream">Stream</Link>}
               </div>
               <div className="flex gap-4">
                 <ThemeButton />
@@ -69,7 +70,9 @@ export default async function RootLayout({
                 )}
               </div>
             </header>
-            {children}
+            <div className="pt-[100px] grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 sm:pt-25 font-[family-name:var(--font-geist-sans)]">
+              {children}
+            </div>
           </body>
         </html>
       </CustomClerkProvider>
