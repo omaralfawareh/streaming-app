@@ -32,8 +32,7 @@ export default function StreamBroadcast() {
         // Enter the desired stream configuration
         streamConfig: IVSBroadcastClient.current.BASIC_LANDSCAPE,
         // Channel ingest endpoint
-        ingestEndpoint:
-          "rtmps://f62e5dfda4ed.global-contribute.live-video.net:443/app/",
+        ingestEndpoint: process.env.NEXT_PUBLIC_IVS_INGEST_ENDPOINT,
       });
 
       const previewEl = document.getElementById("canvas");
@@ -241,7 +240,7 @@ const startBroadcast = async (clientRef: any) => {
   clientRef.current
     .startBroadcast(
       // Streamer key
-      "sk_eu-central-1_CCeZ4LJA9VKR_BPMpgpMLZynCHwOlgGBthtQjauK1UX"
+      process.env.NEXT_PUBLIC_IVS_STREAM_KEY
     )
     .then(() => {
       console.log("Successfully broadcasting!");
