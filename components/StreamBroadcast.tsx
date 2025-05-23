@@ -113,7 +113,7 @@ export default function StreamBroadcast() {
       <main className="flex flex-col gap-[32px] justify-center items-center align-center">
         <canvas
           id="canvas"
-          className="border rounded w-full h-full 2xl:min-h-[480px] max-w-[1280px] max-h-[720px] aspect-video"
+          className="border rounded w-full h-full 2xl:min-h-[480px] max-w-[1280px] max-h-[720px] aspect-[9/16] md:aspect-video"
         />
 
         <div className="flex flex-row w-full gap-4 justify-center">
