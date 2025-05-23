@@ -29,8 +29,11 @@ export default function StreamBroadcast() {
         // Dynacmically import the amazon-ivs-web-broadcast package to avoid an .self reference error
         (await import("amazon-ivs-web-broadcast")).default;
       clientRef.current = IVSBroadcastClient.current.create({
-        // Enter the desired stream configuration
-        streamConfig: IVSBroadcastClient.current.BASIC_LANDSCAPE,
+        // Use portrait mode for mobile devices
+        streamConfig:
+          window.innerWidth <= 768
+            ? IVSBroadcastClient.current.BASIC_PORTRAIT
+            : IVSBroadcastClient.current.BASIC_LANDSCAPE,
         // Channel ingest endpoint
         ingestEndpoint: process.env.NEXT_PUBLIC_IVS_INGEST_ENDPOINT,
       });
