@@ -25,33 +25,23 @@ export default function StreamBroadcast() {
 
   useEffect(() => {
     (async () => {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter((d) => d.kind === "videoinput");
-      const audioDevices = devices.filter((d) => d.kind === "audioinput");
-      setVideoDevices(videoDevices);
-      setSelectedCamera(videoDevices[0]?.deviceId);
-      setAudioDevices(audioDevices);
-      setSelectedAudio(audioDevices[0]?.deviceId);
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
       IVSBroadcastClient.current =
-        // Dynacmically import the amazon-ivs-web-broadcast package to avoid an error
+        // Dynacmically import the amazon-ivs-web-broadcast package to avoid an .self reference error
         (await import("amazon-ivs-web-broadcast")).default;
       clientRef.current = IVSBroadcastClient.current.create({
         // Enter the desired stream configuration
         streamConfig: IVSBroadcastClient.current.BASIC_LANDSCAPE,
-        // Channel ingest endpoint from the AWS console
-        ingestEndpoint: "",
+        // Channel ingest endpoint
+        ingestEndpoint:
+          "rtmps://f62e5dfda4ed.global-contribute.live-video.net:443/app/",
       });
 
       const previewEl = document.getElementById("canvas");
       clientRef.current.attachPreview(previewEl);
+
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter((d) => d.kind === "videoinput");
-      const audioDevices = devices.filter((d) => d.kind === "audioinput");
+      const videoDevices = devices?.filter((d) => d.kind === "videoinput");
+      const audioDevices = devices?.filter((d) => d.kind === "audioinput");
       const streamConfig = IVSBroadcastClient.current.BASIC_LANDSCAPE;
       videoRef.current = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -64,9 +54,19 @@ export default function StreamBroadcast() {
           },
         },
       });
+      const videDevicesAfter = (
+        await navigator.mediaDevices.enumerateDevices()
+      ).filter((d) => d.kind === "videoinput");
+      setVideoDevices(videDevicesAfter);
       audioRef.current = await navigator.mediaDevices.getUserMedia({
         audio: { deviceId: audioDevices?.[1]?.deviceId },
       });
+      const audioDevicesAfter = (
+        await navigator.mediaDevices.enumerateDevices()
+      ).filter((d) => d.kind === "audioinput");
+      setAudioDevices(audioDevicesAfter);
+      setSelectedAudio(audioDevicesAfter[0]?.deviceId);
+      setSelectedCamera(videDevicesAfter[0]?.deviceId);
       if (!clientRef.current.getVideoInputDevice("camera1")) {
         clientRef.current.addVideoInputDevice(videoRef.current, "camera1", {
           index: 0,
@@ -107,7 +107,7 @@ export default function StreamBroadcast() {
 
   return (
     <>
-      <h1 className="text-4xl">Video Streaming</h1>
+      <h1 className="inline-block text-4xl">Video Streaming</h1>
       <main className="flex flex-col gap-[32px] justify-center items-center align-center">
         <canvas
           id="canvas"
@@ -121,10 +121,6 @@ export default function StreamBroadcast() {
                 clientRef.current?.disableVideo();
               } else {
                 clientRef.current?.removeVideoInputDevice("camera1");
-                console.log(
-                  "removing camera1",
-                  clientRef.current?.getVideoInputDevice("camera1")
-                );
                 const streamConfig = IVSBroadcastClient.current.BASIC_LANDSCAPE;
                 videoRef.current = await navigator.mediaDevices.getUserMedia({
                   video: {
@@ -161,14 +157,14 @@ export default function StreamBroadcast() {
               <SelectItem key="off" value="off">
                 Off
               </SelectItem>
-              {videoDevices.map((device) => (
-                <SelectItem key={device.deviceId} value={device.deviceId}>
-                  {device.label}
-                </SelectItem>
-              ))}
-              <SelectItem key={"omar"} value={"omar"}>
-                Test Camera
-              </SelectItem>
+              {videoDevices?.map(
+                (device) =>
+                  device.deviceId && (
+                    <SelectItem key={device.deviceId} value={device.deviceId}>
+                      {device.label || device.deviceId}
+                    </SelectItem>
+                  )
+              )}
             </SelectContent>
           </Select>
 
@@ -198,11 +194,14 @@ export default function StreamBroadcast() {
               <SelectItem key="off" value="off">
                 Off
               </SelectItem>
-              {audioDevices.map((device) => (
-                <SelectItem key={device.deviceId} value={device.deviceId}>
-                  {device.label}
-                </SelectItem>
-              ))}
+              {audioDevices?.map(
+                (device) =>
+                  device?.deviceId && (
+                    <SelectItem key={device.deviceId} value={device.deviceId}>
+                      {device.label || device.deviceId}
+                    </SelectItem>
+                  )
+              )}
             </SelectContent>
           </Select>
 
@@ -225,7 +224,7 @@ export default function StreamBroadcast() {
                   clientRef.current?.stopBroadcast(clientRef);
                   console.log("Successfully ended broadcast");
                 } catch (error) {
-                  console.error("Failed to stop broadcast:", error);
+                  console.error("Failed to end broadcast:", error);
                 }
               }}
             >
@@ -240,37 +239,14 @@ export default function StreamBroadcast() {
 
 const startBroadcast = async (clientRef: any) => {
   clientRef.current
-    .startBroadcast("")
+    .startBroadcast(
+      // Streamer key
+      "sk_eu-central-1_CCeZ4LJA9VKR_BPMpgpMLZynCHwOlgGBthtQjauK1UX"
+    )
     .then(() => {
-      console.log("I am successfully broadcasting!");
+      console.log("Successfully broadcasting!");
     })
     .catch((error: any) => {
-      console.error("Something drastically failed while broadcasting!", error);
+      console.error("Something failed while broadcasting!", error);
     });
 };
-
-// async function handlePermissions() {
-//   let permissions = {
-//     audio: false,
-//     video: false,
-//   };
-//   try {
-//     const stream = await navigator.mediaDevices.getUserMedia({
-//       video: true,
-//       audio: true,
-//     });
-//     for (const track of stream.getTracks()) {
-//       track.stop();
-//     }
-//     permissions = { video: true, audio: true };
-//   } catch (error) {
-//     permissions = { video: false, audio: false };
-//     console.error(error);
-//   }
-//   // If we still don't have permissions after requesting them display the error message
-//   if (!permissions.video) {
-//     console.error("Failed to get video permissions.");
-//   } else if (!permissions.audio) {
-//     console.error("Failed to get audio permissions.");
-//   }
-// }
