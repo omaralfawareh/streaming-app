@@ -70,7 +70,7 @@ export default async function RootLayout({
                 )}
               </div>
             </header>
-            <div className="pt-[100px] grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 sm:pt-25 font-[family-name:var(--font-geist-sans)]">
+            <div className="flex flex-col pt-16 h-screen font-[family-name:var(--font-geist-sans)]">
               {children}
             </div>
           </body>
