@@ -22,9 +22,27 @@ export default function StreamBroadcast() {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const [selectedAudio, setSelectedAudio] = useState<string>("");
+  const [channelData, setChannelData] = useState<{
+    streamKey: string;
+    ingestUrl: string;
+  } | null>(null);
 
   useEffect(() => {
-    (async () => {
+    const fetchChannelData = async () => {
+      const response = await fetch("/api/channel", {
+        next: { revalidate: false },
+      });
+      const data = await response.json();
+      setChannelData({
+        streamKey: data?.streamKey,
+        ingestUrl: data?.ingestUrl,
+      });
+    };
+    fetchChannelData();
+  }, []);
+
+  useEffect(() => {
+    const initiateClient = async () => {
       IVSBroadcastClient.current =
         // Dynacmically import the amazon-ivs-web-broadcast package to avoid an .self reference error
         (await import("amazon-ivs-web-broadcast")).default;
@@ -35,7 +53,7 @@ export default function StreamBroadcast() {
             ? IVSBroadcastClient.current.BASIC_PORTRAIT
             : IVSBroadcastClient.current.BASIC_LANDSCAPE,
         // Channel ingest endpoint
-        ingestEndpoint: process.env.NEXT_PUBLIC_IVS_INGEST_ENDPOINT,
+        ingestEndpoint: `${channelData?.ingestUrl}`,
       });
 
       const previewEl = document.getElementById("canvas");
@@ -77,7 +95,11 @@ export default function StreamBroadcast() {
       if (!clientRef.current.getAudioInputDevice("mic1")) {
         clientRef.current.addAudioInputDevice(audioRef.current, "mic1");
       }
-    })();
+    };
+
+    if (channelData) {
+      initiateClient();
+    }
 
     return () => {
       if (clientRef.current) {
@@ -105,7 +127,7 @@ export default function StreamBroadcast() {
       videoRef.current = null;
       audioRef.current = null;
     };
-  }, []);
+  }, [channelData]);
 
   return (
     <>
@@ -211,7 +233,7 @@ export default function StreamBroadcast() {
             <Button
               variant="destructive"
               onClick={() => {
-                startBroadcast(clientRef);
+                startBroadcast(clientRef, channelData);
                 setIsLive(true);
               }}
             >
@@ -239,11 +261,11 @@ export default function StreamBroadcast() {
   );
 }
 
-const startBroadcast = async (clientRef: any) => {
+const startBroadcast = async (clientRef: any, channelData: any) => {
   clientRef.current
     .startBroadcast(
       // Streamer key
-      process.env.NEXT_PUBLIC_IVS_STREAM_KEY
+      channelData?.streamKey
     )
     .then(() => {
       console.log("Successfully broadcasting!");
