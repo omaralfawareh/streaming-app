@@ -28,7 +28,7 @@ model Channel {
   arn          String   @unique
   streamKey    String   @unique
   streamKeyArn String   @unique
-  ingestUrl    String   @unique
+  ingestUrl    String   
   playbackUrl  String   @unique
   type         String
   latencyMode  String

@@ -11,6 +11,13 @@ import { MicIcon } from "./svgs/MicIcon";
 import { MicMuteIcon } from "./svgs/MicMuteIcon";
 import { CameraVideoIcon } from "./svgs/CameraVideoIcon";
 import { CameraVideoOffIcon } from "./svgs/CameraVideoOffIcon";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ClipboardIcon } from "./svgs/ClipboardIcon";
+import { CheckMarkIcon } from "./svgs/CheckMarkIcon";
 
 export default function StreamBroadcast() {
   const IVSBroadcastClient = useRef<any>(null);
@@ -22,10 +29,20 @@ export default function StreamBroadcast() {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const [selectedAudio, setSelectedAudio] = useState<string>("");
-  const [channelData, setChannelData] = useState<{
-    streamKey: string;
-    ingestUrl: string;
-  } | null>(null);
+  const [channelData, setChannelData] = useState<any>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyStreamLink = async () => {
+    // Static stream link for now
+    const streamLink = `${window.location.origin}/stream/${channelData?.slug}`;
+    try {
+      await navigator.clipboard.writeText(streamLink);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 4000);
+    } catch (err) {
+      console.error("Failed to copy stream link:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchChannelData = async () => {
@@ -34,8 +51,7 @@ export default function StreamBroadcast() {
       });
       const data = await response.json();
       setChannelData({
-        streamKey: data?.streamKey,
-        ingestUrl: data?.ingestUrl,
+        ...data,
       });
     };
     fetchChannelData();
@@ -46,12 +62,14 @@ export default function StreamBroadcast() {
       IVSBroadcastClient.current =
         // Dynacmically import the amazon-ivs-web-broadcast package to avoid an .self reference error
         (await import("amazon-ivs-web-broadcast")).default;
-      clientRef.current = IVSBroadcastClient.current.create({
+      const streamConfig =
         // Use portrait mode for mobile devices
-        streamConfig:
-          window.innerWidth <= 768
-            ? IVSBroadcastClient.current.BASIC_PORTRAIT
-            : IVSBroadcastClient.current.BASIC_LANDSCAPE,
+        window.innerWidth <= 768
+          ? IVSBroadcastClient.current.BASIC_PORTRAIT
+          : IVSBroadcastClient.current.BASIC_LANDSCAPE;
+
+      clientRef.current = IVSBroadcastClient.current.create({
+        streamConfig,
         // Channel ingest endpoint
         ingestEndpoint: `${channelData?.ingestUrl}`,
       });
@@ -62,7 +80,6 @@ export default function StreamBroadcast() {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices?.filter((d) => d.kind === "videoinput");
       const audioDevices = devices?.filter((d) => d.kind === "audioinput");
-      const streamConfig = IVSBroadcastClient.current.BASIC_LANDSCAPE;
       videoRef.current = await navigator.mediaDevices.getUserMedia({
         video: {
           deviceId: videoDevices?.[0]?.deviceId,
@@ -111,16 +128,26 @@ export default function StreamBroadcast() {
       const videoStream = videoRef.current;
       const audioStream = audioRef.current;
       if (videoStream) {
-        const videoTrack = videoStream.getVideoTracks()[0];
+        const videoTrack = videoStream.getVideoTracks()?.[0];
         videoTrack.enabled = false;
         videoTrack.stop(); // This stops the video track completely\
-        clientRef.current.removeVideoInputDevice("camera1");
+        try {
+          clientRef.current.removeVideoInputDevice("camera1");
+        } catch (e) {
+          console.log("Error removing video device", e);
+          // Ignore RemoveDeviceNotFoundError or any error if device is already removed
+        }
       }
       if (audioStream) {
         const audioTrack = audioStream.getAudioTracks()[0];
         audioTrack.enabled = false;
         audioTrack.stop(); // This stops the audio track completely
-        clientRef.current.removeAudioInputDevice("mic1");
+        try {
+          clientRef.current.removeAudioInputDevice("mic1");
+        } catch (e) {
+          console.log("Error removing audio device", e);
+          // Ignore RemoveDeviceNotFoundError or any error if device is already removed
+        }
       }
       IVSBroadcastClient.current = null;
       clientRef.current = null;
@@ -131,11 +158,10 @@ export default function StreamBroadcast() {
 
   return (
     <>
-      <h1 className="inline-block text-4xl">Video Streaming</h1>
-      <main className="flex flex-col gap-[32px] justify-center items-center align-center">
+      <main className="flex flex-col gap-[32px] justify-center items-center align-center h-full">
         <canvas
           id="canvas"
-          className="border rounded w-full h-full 2xl:min-h-[480px] max-w-[1280px] max-h-[720px] aspect-square md:aspect-video"
+          className="border rounded w-full h-full 2xl:min-h-[480px] max-w-[1280px] max-h-[720px] aspect-[4/5] md:aspect-video"
         />
 
         <div className="flex flex-row w-full gap-4 justify-center">
@@ -228,6 +254,21 @@ export default function StreamBroadcast() {
               )}
             </SelectContent>
           </Select>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleCopyStreamLink}
+                variant="outline"
+                className="rounded-full text-muted-foreground"
+              >
+                {copySuccess ? <CheckMarkIcon /> : <ClipboardIcon />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Copy Stream Link</p>
+            </TooltipContent>
+          </Tooltip>
 
           {!isLive ? (
             <Button
