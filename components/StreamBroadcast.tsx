@@ -29,15 +29,12 @@ export default function StreamBroadcast() {
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const [selectedAudio, setSelectedAudio] = useState<string>("");
-  const [channelData, setChannelData] = useState<{
-    streamKey: string;
-    ingestUrl: string;
-  } | null>(null);
+  const [channelData, setChannelData] = useState<any>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
   const handleCopyStreamLink = async () => {
     // Static stream link for now
-    const streamLink = "https://your-app.com/stream/live-stream-123";
+    const streamLink = `${window.location.origin}/stream/${channelData?.slug}`;
     try {
       await navigator.clipboard.writeText(streamLink);
       setCopySuccess(true);
@@ -54,8 +51,7 @@ export default function StreamBroadcast() {
       });
       const data = await response.json();
       setChannelData({
-        streamKey: data?.streamKey,
-        ingestUrl: data?.ingestUrl,
+        ...data,
       });
     };
     fetchChannelData();
