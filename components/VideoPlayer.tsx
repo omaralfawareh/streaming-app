@@ -54,11 +54,6 @@ const playerOptions = {
 export function VideoPlayer() {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
-  const { theme, setTheme } = useContext(ThemeContext);
-
-  useEffect(() => {
-    setTheme("dark");
-  }, [setTheme]);
 
   useEffect(() => {
     if (!playerRef.current && videoRef.current) {
