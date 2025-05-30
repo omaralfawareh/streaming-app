@@ -134,6 +134,7 @@ export default function StreamBroadcast() {
         try {
           clientRef.current.removeVideoInputDevice("camera1");
         } catch (e) {
+          console.log("Error removing video device", e);
           // Ignore RemoveDeviceNotFoundError or any error if device is already removed
         }
       }
@@ -144,6 +145,7 @@ export default function StreamBroadcast() {
         try {
           clientRef.current.removeAudioInputDevice("mic1");
         } catch (e) {
+          console.log("Error removing audio device", e);
           // Ignore RemoveDeviceNotFoundError or any error if device is already removed
         }
       }
