@@ -120,3 +120,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom animations for streaming arrows */
+@keyframes flow {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(300%);
+    opacity: 0;
+  }
+}
+
+@keyframes flowDot {
+  0% {
+    transform: translateX(-8px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(64px);
+    opacity: 0;
+  }
+}
