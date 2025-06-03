@@ -10,6 +10,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,6 +74,7 @@ export default async function RootLayout({
             <div className="flex flex-col pt-16 h-screen font-[family-name:var(--font-geist-sans)]">
               {children}
             </div>
+            <Analytics />
           </body>
         </html>
       </CustomClerkProvider>
